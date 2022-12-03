@@ -26,26 +26,54 @@ CONSONANTS = set(list("QWRTYPSDFGHJKLZXCVBNM"))
 # Functions ---------------------------------
 # -------------------------------------------
 
+def display_player_stats():
+  """Display Player stats to the terminal
+  """
+  print()
+  print("Current state of the game is...")
+  for player in PLAYERS:
+    id = player["id"]
+    name = player["name"]
+    score = player["score"]
+    lead = "*Leading*" if player["leading"] else ""
+    print(f"Player {id}. {name}, Score: {score}, {lead}")
+  print()
+
 # -------------------------------------------
 
-def guess_words():
-  """temp
+def guessing_round():
+  """Guessing Round, where each player gets to input their
+  guesses.
   """
+  scores = [0] * len(PLAYERS)
   for i in range(len(PLAYERS)):
     name = PLAYERS[i]["name"]
-    word = input(f"{name}'s guess: ")
-    if word_is_valid(word):
-      print(word, "is VALID")
+    word = input(f"{name}'s guess: ")  # get the guess
+    score = len(word) if word_is_valid(word) else 0
+    if score == BOARD_SIZE:
+      score *= 2
+    scores[i] = score
+  highest_score = max(scores)
+  scores = [e if e == highest_score else 0 for e in scores]
+  
+  # Update scores and determine leader
+  player_scores = [0] * len(PLAYERS)
+  for i in range(len(PLAYERS)):
+    PLAYERS[i]["score"] += scores[i]
+    player_scores[i] = PLAYERS[i]["score"]
+  for i in range(len(PLAYERS)):
+    if player_scores[i] == max(player_scores):
+      PLAYERS[i]["leading"] = True
     else:
-      print(word, "is invalid")
+      PLAYERS[i]["leading"] = False
 
 # -------------------------------------------
 
 def word_is_valid(word):
   """Check if a given word is valid or not.
   A valid word is one that uses only letters on the board
-  once (no repeats). This function does not search
-  for the word in the English dictionary.
+  once (no repeats). If that's valid, return
+  True if the word is english.
 
   Args:
       word (str): Word
@@ -67,7 +95,7 @@ def word_is_valid(word):
         break
     if not valid:
       return False
-  return True
+  return (word.lower() in ENGLISH_WORDS)
 
 # -------------------------------------------
 
@@ -98,11 +126,15 @@ def add_letter_to_board(choice_vowel=True):
 def add_letters_to_board():
   """Choose random letters to put up on the board
   """
+  if BOARD_LETTERS != [''] * BOARD_SIZE:
+    # reset board
+    for i in range(BOARD_SIZE):
+      BOARD_LETTERS[i] = ''
   print(f"Choose {BOARD_SIZE} letters to put up on the board.")
-  for _ in range(BOARD_SIZE):
-    choice = True if input("Vowel (v) or Consonant (c)? ") == 'v' else False
+  for i in range(BOARD_SIZE):
+    choice = True if input(f"{i+1}. Vowel (v) or Consonant (c)? ") == 'v' else False
     add_letter_to_board(choice)
-    print(get_board())
+    # print(get_board())
     
 
 # -------------------------------------------
@@ -162,6 +194,7 @@ def init_players(n, names=[]):
       "name": names[i],
       "id": i,
       "score": 0,
+      "leading": True,
     })
   return True
 
@@ -191,19 +224,23 @@ def load_data(filename):
 def init_game():
   """Initialise the game state
   """
+  global ENGLISH_WORDS
   ENGLISH_WORDS = load_data(WORDS_FILE)
   print(len(ENGLISH_WORDS))
   names = get_players()
   if init_players(len(names), names):
     pass
   print(PLAYERS)
-  # add_letters_to_board()
-  temp = ['U', 'O', 'A', 'O', 'K', 'G', 'N', 'C', 'Z']
-  for i in range(9):
-    BOARD_LETTERS[i] = temp[i]
-  print("Final board is", get_board())
-  print()
-  guess_words()
+  
+  for _ in range(3):
+    add_letters_to_board()
+    # temp = ['U', 'O', 'A', 'O', 'K', 'G', 'N', 'C', 'Z']
+    # for i in range(9):
+    #   BOARD_LETTERS[i] = temp[i]
+    print("Final board is", get_board())
+    print()
+    guessing_round()
+    display_player_stats()
 
 if __name__ == "__main__":
   init_game()  
