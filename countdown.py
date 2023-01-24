@@ -226,7 +226,7 @@ def init_game():
   """
   global ENGLISH_WORDS
   ENGLISH_WORDS = load_data(WORDS_FILE)
-  print(len(ENGLISH_WORDS))
+  print(len(ENGLISH_WORDS), "words loaded from", WORDS_FILE)
   names = get_players()
   if init_players(len(names), names):
     pass
